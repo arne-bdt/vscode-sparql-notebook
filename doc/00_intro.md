@@ -6,9 +6,10 @@ The **SPARQL Notebook for VSCode** extension enables users to run SPARQL queries
 
 ### Key Features
 - **Query Execution on HTTP/HTTPS Endpoints**: Run SPARQL queries directly against remote SPARQL endpoints with HTTP/HTTPS protocols.
-- **Binding Local Query Files to Code Cells**: Bind local `.sparql` or `.rq` files directly to code cells, allowing the contents of these files to be embedded within the notebook cell itself. This approach enables you to develop and document queries in a dedicated file while keeping the query available within the notebook for easy execution. Markdown cells can be used alongside these code cells to add explanations or documentation.
+- **SHACL Validation**: Validate RDF data using SHACL shapes against remote endpoints that support SHACL (e.g., Apache Jena Fuseki). SHACL cells use Turtle syntax and return validation reports.
+- **Binding Local Query Files to Code Cells**: Bind local `.sparql`, `.rq`, `.shacl`, or `.ttl` files directly to code cells, allowing the contents of these files to be embedded within the notebook cell itself. This approach enables you to develop and document queries in a dedicated file while keeping the query available within the notebook for easy execution. Markdown cells can be used alongside these code cells to add explanations or documentation.
 - **RDF File Querying**: Execute SPARQL queries on local RDF files (e.g., Turtle, RDF-XML) by providing a file path or pattern. This is especially useful when transforming data to RDF format and verifying the output with SPARQL before committing it to a triple store.
-- **Markdown and Code Cells**: Use Markdown cells for explanations and Code cells for SPARQL queries. This format is ideal for creating a rich, interactive documentation environment around your queries.
+- **Markdown and Code Cells**: Use Markdown cells for explanations and Code cells for SPARQL queries or SHACL shapes. This format is ideal for creating a rich, interactive documentation environment around your queries.
 
 While it’s a powerful tool for working with SPARQL and RDF data, the SPARQL Notebook is adaptable to a range of use cases beyond data science. Whether you’re building transformation workflows or simply documenting and testing queries. If there are any features missing for your specific use case, feel free to request them.
 
@@ -138,8 +139,65 @@ You can also bind local `.sparql` or `.rq` files to code cells. This is useful i
 ![Include query from file](./img/external-query.png)
 
 > **Note:**
-> 
+>
 > If you change the cell content and save the notebook then the content of the file will be updated.
+
+## SHACL Validation
+
+In addition to SPARQL, the notebook supports **SHACL validation** against remote SPARQL endpoints that provide a SHACL validation service (such as Apache Jena Fuseki).
+
+### How SHACL Works in the Notebook
+
+SHACL (Shapes Constraint Language) is used to validate RDF graphs against a set of conditions (shapes). In the notebook:
+
+1. Create a code cell and change the language from `sparql` to `shacl`
+2. Write your SHACL shapes in Turtle syntax
+3. Specify the endpoint URL (including any required parameters like the target graph)
+4. Execute the cell to see the validation report
+
+### Configuring SHACL Endpoints
+
+SHACL validation requires specifying the full endpoint URL, including any parameters required by your SHACL service. Use the `[endpoint=...]` comment:
+
+```shacl
+# [endpoint=http://localhost:3030/dataset/shacl?graph=default]
+
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix ex: <http://example.org/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:PersonShape a sh:NodeShape ;
+    sh:targetClass ex:Person ;
+    sh:property [
+        sh:path ex:name ;
+        sh:minCount 1 ;
+        sh:datatype xsd:string ;
+    ] .
+```
+
+### SHACL with Apache Jena Fuseki
+
+Apache Jena Fuseki provides a SHACL validation endpoint. Following the [Jena SHACL documentation](https://jena.apache.org/documentation/shacl/), the endpoint URL typically follows this pattern:
+
+```
+http://localhost:3030/<dataset>/shacl?graph=<graph-to-validate>
+```
+
+Where:
+- `<dataset>` is your Fuseki dataset name
+- `<graph-to-validate>` is `default` for the default graph, or a named graph URI
+
+### Binding SHACL Files to Cells
+
+Similar to SPARQL files, you can bind local `.shacl` or `.ttl` files to SHACL cells. Use the "Add Query from File" option in the cell menu and select a SHACL file. Files with `.shacl` or `.ttl` extensions will automatically be recognized as SHACL cells.
+
+> **Note:**
+>
+> SHACL validation is only supported for HTTP/HTTPS endpoints. Local file-based validation is not currently supported.
+
+> **Note:**
+>
+> The validation result is returned in Turtle format, containing the SHACL validation report.
 
 ## Export to MARKDOWN
 

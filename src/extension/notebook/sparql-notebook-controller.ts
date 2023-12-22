@@ -8,6 +8,7 @@ import { AskQueryHandler } from '../sparql-query-handler/ask-query-handler';
 import { UpdateQueryHandler } from '../sparql-query-handler/update-query-handler';
 import { ErrorQueryHandler } from '../sparql-query-handler/error-query-handler';
 import { ConstructQueryHandler } from '../sparql-query-handler/construct-query-handler';
+import { ShaclQueryHandler } from '../sparql-query-handler/shacl-query-handler';
 import { writeError } from '../sparql-query-handler/helper/write-error';
 import { SPARQLQueryKind } from '../const/enum/sparql-query-kind';
 import { HttpErrorStatus, HttpSuccessStatus } from '../endpoint/const/http-status';
@@ -18,7 +19,7 @@ export class SparqlNotebookController {
   readonly controllerId = `${extensionId}-controller-id`;
   readonly notebookType = extensionId;
   readonly label = "Sparql Notebook";
-  readonly supportedLanguages = ["sparql"];
+  readonly supportedLanguages = ["sparql", "shacl"];
 
   readonly #controller: NotebookController;
   #executionOrder = 0;
@@ -61,6 +62,7 @@ export class SparqlNotebookController {
   async #executeCell(nbCell: NotebookCell): Promise<void> {
 
     const sparqlCell = new SparqlNotebookCell(nbCell);
+    const languageId = nbCell.document.languageId;
 
     const execution = this.#controller.createNotebookCellExecution(sparqlCell.cell);
     execution.executionOrder = ++this.#executionOrder;
@@ -76,13 +78,26 @@ export class SparqlNotebookController {
       return;
     }
 
-    // run the query
-    const queryResult = await sparqlEndpoint.query(sparqlQuery, execution).catch(
-      (error) => {
-        this.errorRenderer.showNetworkErrorMessage(error, execution);
-        execution.end(false, Date.now());
-        return;
-      });
+    let queryResult;
+
+    if (languageId === "shacl") {
+      // SHACL validation - use the raw text and call validate()
+      const shaclText = nbCell.document.getText();
+      queryResult = await sparqlEndpoint.validate(shaclText, execution).catch(
+        (error) => {
+          this.errorRenderer.showNetworkErrorMessage(error, execution);
+          execution.end(false, Date.now());
+          return undefined;
+        });
+    } else {
+      // SPARQL query - use the SparqlQuery object
+      queryResult = await sparqlEndpoint.query(sparqlQuery, execution).catch(
+        (error) => {
+          this.errorRenderer.showNetworkErrorMessage(error, execution);
+          execution.end(false, Date.now());
+          return undefined;
+        });
+    }
 
     if (!queryResult) {
       execution.replaceOutput([
@@ -105,8 +120,10 @@ export class SparqlNotebookController {
       return;
     }
 
-
-    const handler = this.#getHandlerForType(sparqlQuery.kind);
+    // Get the appropriate handler based on language or query type
+    const handler = languageId === "shacl"
+      ? new ShaclQueryHandler()
+      : this.#getHandlerForType(sparqlQuery.kind);
     handler.handle(queryResult, sparqlCell, execution);
   }
 
