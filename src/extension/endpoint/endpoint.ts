@@ -2,6 +2,7 @@
 export abstract class Endpoint {
     public abstract url: string;
     abstract query(sparqlQuery: string, execution?: any): Promise<any>;
+    abstract validate(shaclGraphAsTurtle: string, execution?: any): Promise<any>;
 }
 
 class EndpointController {

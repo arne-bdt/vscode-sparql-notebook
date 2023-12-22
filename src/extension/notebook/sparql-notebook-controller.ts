@@ -19,7 +19,7 @@ export class SparqlNotebookController {
   readonly controllerId = `${extensionId}-controller-id`;
   readonly notebookType = extensionId;
   readonly label = "Sparql Notebook";
-  readonly supportedLanguages = ["sparql"];
+  readonly supportedLanguages = ["sparql", "shacl"];
 
   private readonly _controller: NotebookController;
   private _executionOrder = 0;
@@ -61,7 +61,7 @@ export class SparqlNotebookController {
     // Keep track of elapsed time to execute cell.
     execution.start(Date.now());
 
-    const sparqlQuery = cell.document.getText();
+    const sparqlQueryOrShacl = cell.document.getText();
 
     // you can configure the endpoint within the query like this # [endpoint='xxxx']
     // todo: rename function
@@ -77,35 +77,69 @@ export class SparqlNotebookController {
       return;
     }
 
-    // execute the query
-    const queryResult = await sparqlEndpoint.query(sparqlQuery, execution).catch((error) => {
-      let errorMessage = error.message ?? "error";
-      if (error.hasOwnProperty("response") && error.response.hasOwnProperty("data")) {
-        if (error.response.data.message) {
-          errorMessage += "\n" + error.response.data.message;
-        } else {
-          errorMessage += "\n" + error.response.data;
-        }
-      }
+    let result;
+    
+    switch (cell.document.languageId) {
+      case "sparql":
+        result = await sparqlEndpoint.query(sparqlQueryOrShacl, execution).catch((error) => {
+          let errorMessage = error.message ?? "error";
+          if (error.hasOwnProperty("response") && error.response.hasOwnProperty("data")) {
+            if (error.response.data.message) {
+              errorMessage += "\n" + error.response.data.message;
+            } else {
+              errorMessage += "\n" + error.response.data;
+            }
+          }
+    
+          execution.replaceOutput([
+            this._writeError(errorMessage)
+          ]);
+          console.error('SPARQL execution error:', errorMessage);
+          execution.end(false, Date.now());
+          return;          
+        });
+        break;
 
-      execution.replaceOutput([
-        this._writeError(errorMessage)
-      ]);
-      console.error('SPARQL execution error:', errorMessage);
-      execution.end(false, Date.now());
-      return;
-    });
+      case "shacl":
+        result = await sparqlEndpoint.validate(sparqlQueryOrShacl, execution).catch((error) => {
+          let errorMessage = error.message ?? "error";
+          if (error.hasOwnProperty("response") && error.response.hasOwnProperty("data")) {
+            if (error.response.data.message) {
+              errorMessage += "\n" + error.response.data.message;
+            } else {
+              errorMessage += "\n" + error.response.data;
+            }
+          }
+    
+          execution.replaceOutput([
+            this._writeError(errorMessage)
+          ]);
+          console.error('SHACL execution error:', errorMessage);
+          execution.end(false, Date.now());
+          return;          
+        });
+        break;
 
+      default:
+        const errorMessage = `Error: Unknown language ${cell.document.languageId}`;
+        console.error(errorMessage);
+        execution.replaceOutput([
+          this._writeError(errorMessage)
+        ]);
+        execution.end(false, Date.now());
+        return;
+    }
+    
     // content type
-    if (!queryResult) {
+    if (!result) {
       execution.replaceOutput([
         this._writeError('No result')
       ]);
       execution.end(false, Date.now());
       return;
     }
-    const contentType = queryResult.headers["content-type"].split(";")[0];
-    const data = queryResult.data;
+    const contentType = result.headers["content-type"].split(";")[0];
+    const data = result.data;
     let isSuccess = true;
 
     if (contentType === "application/sparql-results+json") {

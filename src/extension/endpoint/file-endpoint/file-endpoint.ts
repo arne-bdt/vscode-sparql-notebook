@@ -70,5 +70,16 @@ export class FileEndpoint extends Endpoint {
     public async query(sparqlQuery: string, execution?: any): Promise<any> {
         const res = this._store.query(sparqlQuery);
         return res;
+    }    
+
+    /**
+     * SPARQL validation is not supported for file endpoint.
+     * @param shaclGraphAsTurtle 
+     * @param execution 
+     */
+    public async validate(shaclGraphAsTurtle: string, execution?: any): Promise<any> {
+        const message = "SCACL validation not supported for file endpoint.";
+        window.showErrorMessage(message);
+        console.error(message);
     }
 }

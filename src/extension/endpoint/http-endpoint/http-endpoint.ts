@@ -62,4 +62,32 @@ export class HttpEndpoint extends Endpoint {
     const response = await this.http.post('', params, options);
     return response;
   }
+
+  /**
+   * Validates a SHACL graph against the endpoint.
+   * @param shaclGraphAsTurtle - The SHACL graph to validate.
+   * @param execution - The execution object.
+   */
+  public async validate(shaclGraphAsTurtle: string, execution?: any) {
+    const params = new URLSearchParams();
+    const abortController = new AbortController();
+
+    const options: AxiosRequestConfig = {
+      headers: {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        'Content-Type': 'text/turtle',
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        Accept: 'text/turtle',
+      },
+      signal: abortController.signal
+    };
+    if (execution) {
+      execution.token.onCancellationRequested((_: any) => {
+        console.warn('Request cancelled');
+        abortController.abort();
+      });
+    }   
+    const response = await this.http.post('', shaclGraphAsTurtle, options);
+    return response;
+  }
 }

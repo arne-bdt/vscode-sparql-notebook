@@ -18,7 +18,8 @@
     "Data Science"
   ],
   "keywords": [
-    "sparql"
+    "sparql",
+    "shacl"
   ],
   "activationEvents": [
     "onNotebook:sparql-notebook"
