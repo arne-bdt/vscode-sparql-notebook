@@ -80,6 +80,11 @@ export class FileEndpoint extends Endpoint {
     }
 
     /**
+     * Returns whether this is a QLever endpoint.
+     */
+    readonly isQLeverEndpoint = false;
+
+    /**
      * Executes a SPARQL query against the endpoint.
      * @param sparqlQuery - The SPARQL query to execute.
      * @param execution - The execution object.
@@ -125,5 +130,14 @@ export class FileEndpoint extends Endpoint {
         }
 
         return Promise.resolve(response);
+    }
+
+    /**
+     * SHACL validation is not supported for file endpoint.
+     * @param shaclGraphAsTurtle - The SHACL graph in Turtle format.
+     * @param execution - The execution object.
+     */
+    public async validate(shaclGraphAsTurtle: string, execution?: any): Promise<SimpleHttpResponse> {
+        throw new Error("SHACL validation is not supported for file endpoints.");
     }
 }

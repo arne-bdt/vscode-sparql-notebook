@@ -8,10 +8,11 @@ Use a SPARQL notebook to:
 - Provide hands-on SPARQL training
 - Document data available via SPARQL
 - Validate data via SPARQL
+- Validate RDF data using SHACL shapes
 - Run queries against a SPARQL endpoint
 - Run queries against a local RDF file
 
-This notebook can render SPARQL SELECT results and RDF graphs via SPARQL CONSTRUCT queries.
+This notebook can render SPARQL SELECT results and RDF graphs via SPARQL CONSTRUCT queries. It also supports SHACL validation against remote endpoints.
 
 ![sparql-notebook](https://user-images.githubusercontent.com/8033981/157274845-e722bace-16aa-4055-8a07-0b8fc5a8b112.gif)
 
@@ -33,7 +34,9 @@ This extension is still pretty raw but it works for us [tm]. Bug reports & contr
 - Configure endpoint connections in the SPARQL Notebook side panel.
 - Export a `.sparqlbook` file to Markdown.
 - Attach `.sparql` or `.rq` files to cells.
+- Attach `.shacl` or `.ttl` files for SHACL validation cells.
 - Use a local RDF file as a data source.
+- Validate RDF data using SHACL shapes against remote endpoints (e.g., Apache Jena Fuseki).
 
 ## Installation
 
