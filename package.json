@@ -244,6 +244,6 @@
     "tslib": "^2.8.1"
   },
   "extensionDependencies": [
-    "vemonet.stardog-rdf-grammars"
+    "stardog-union.stardog-rdf-grammars"
   ]
 }
