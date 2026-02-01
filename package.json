@@ -22,7 +22,8 @@
     "shacl"
   ],
   "activationEvents": [
-    "onNotebook:sparql-notebook"
+    "onNotebook:sparql-notebook",
+    "onNotebook:sparql-markdown-notebook"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -34,6 +35,20 @@
         "selector": [
           {
             "filenamePattern": "*.sparqlbook"
+          }
+        ]
+      },
+      {
+        "id": "sparql-markdown-notebook",
+        "type": "sparql-markdown-notebook",
+        "displayName": "SPARQL Markdown Notebook",
+        "priority": "option",
+        "selector": [
+          {
+            "filenamePattern": "*.md"
+          },
+          {
+            "filenamePattern": "*.markdown"
           }
         ]
       }
@@ -171,6 +186,11 @@
             "type": "boolean",
             "default": true,
             "description": "Format output using prefixes from query."
+          },
+          "sparqlbook.markdownIntegration.enabled": {
+            "type": "boolean",
+            "default": true,
+            "description": "Enable SPARQL/SHACL notebook functionality for markdown files. When enabled, you can open markdown files with 'Open With...' and select 'SPARQL Markdown Notebook' to execute SPARQL and SHACL code blocks."
           }
         }
       }
