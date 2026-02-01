@@ -7,6 +7,7 @@ The **SPARQL Notebook for VSCode** extension enables users to run SPARQL queries
 ### Key Features
 - **Query Execution on HTTP/HTTPS Endpoints**: Run SPARQL queries directly against remote SPARQL endpoints with HTTP/HTTPS protocols.
 - **SHACL Validation**: Validate RDF data using SHACL shapes against remote endpoints that support SHACL (e.g., Apache Jena Fuseki). SHACL cells use Turtle syntax and return validation reports.
+- **Markdown Integration**: Execute SPARQL and SHACL code blocks directly from any markdown file. Open markdown files as notebooks to get the full notebook experience with inline results.
 - **Binding Local Query Files to Code Cells**: Bind local `.sparql`, `.rq`, `.shacl`, or `.ttl` files directly to code cells, allowing the contents of these files to be embedded within the notebook cell itself. This approach enables you to develop and document queries in a dedicated file while keeping the query available within the notebook for easy execution. Markdown cells can be used alongside these code cells to add explanations or documentation.
 - **RDF File Querying**: Execute SPARQL queries on local RDF files (e.g., Turtle, RDF-XML) by providing a file path or pattern. This is especially useful when transforming data to RDF format and verifying the output with SPARQL before committing it to a triple store.
 - **Markdown and Code Cells**: Use Markdown cells for explanations and Code cells for SPARQL queries or SHACL shapes. This format is ideal for creating a rich, interactive documentation environment around your queries.
@@ -198,6 +199,65 @@ Similar to SPARQL files, you can bind local `.shacl` or `.ttl` files to SHACL ce
 > **Note:**
 >
 > The validation result is returned in Turtle format, containing the SHACL validation report.
+
+## Markdown Integration
+
+The SPARQL Notebook extension allows you to execute SPARQL and SHACL code blocks directly from any markdown file. This is useful for:
+
+- Documenting queries in README files with executable examples
+- Creating tutorials with runnable code samples
+- Working with existing markdown documentation that contains SPARQL/SHACL snippets
+
+### How to Use Markdown Integration
+
+1. Open any `.md` or `.markdown` file in VS Code
+2. Right-click on the file in the Explorer or use the editor title bar
+3. Select **"Open With..."**
+4. Choose **"SPARQL Markdown Notebook"**
+
+The markdown file will open in a notebook view where:
+- Regular markdown text becomes markdown cells
+- Code blocks with ` ```sparql ` become executable SPARQL cells
+- Code blocks with ` ```shacl ` become executable SHACL cells
+- Other code blocks (e.g., JavaScript, Python) remain as markdown
+
+### Example Markdown with SPARQL
+
+Create a markdown file with SPARQL code blocks:
+
+````markdown
+# My SPARQL Documentation
+
+This query fetches cities from DBpedia:
+
+```sparql
+# [endpoint=https://dbpedia.org/sparql]
+PREFIX dbo: <http://dbpedia.org/ontology/>
+SELECT ?city WHERE { ?city a dbo:City } LIMIT 10
+```
+````
+
+When opened as a SPARQL Markdown Notebook, the code block becomes an executable cell with inline results.
+
+### Configuration
+
+The markdown integration is enabled by default. You can disable it in VS Code settings:
+
+```json
+{
+  "sparqlbook.markdownIntegration.enabled": false
+}
+```
+
+When disabled, the "SPARQL Markdown Notebook" option will not appear in the "Open With..." menu.
+
+### Preserving Markdown Formatting
+
+When you save a file opened as a SPARQL Markdown Notebook, it will be saved back as valid markdown. The structure is preserved:
+- Markdown cells become regular markdown text
+- SPARQL/SHACL cells become fenced code blocks with the appropriate language tag
+
+This means your markdown files remain compatible with any markdown viewer or documentation system.
 
 ## Export to MARKDOWN
 
