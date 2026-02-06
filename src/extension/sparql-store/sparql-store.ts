@@ -1,6 +1,7 @@
 import { BlankNode, NamedNode, Quad, Store, defaultGraph } from 'oxigraph';
 import { SPARQLQueryKind } from '../const/enum/sparql-query-kind';
 import { SparqlQuery } from '../endpoint/model/sparql-query';
+import { Uri } from 'vscode';
 
 export enum RdfMimeType {
     nTriples = 'application/n-triples',
@@ -19,6 +20,12 @@ interface QueryOptions {
     default_graph: (NamedNode | BlankNode)[], // the default graph of the query is the union of the store default graph and the http://example.com graph
     named_graphs: (NamedNode | BlankNode)[], // we restrict the available named graphs to the two listed
     results_format: string, // the response will be serialized a string in the JSON format (media types like application/sparql-results+json also work)
+}
+
+interface ParserOptions {
+    base_iri: string,
+    format: RdfMimeType,
+    to_graph_name: NamedNode | BlankNode,
 }
 
 /**
@@ -147,10 +154,11 @@ export class SparqlStore {
      * @param mimeType Supported MIME types are: application/n-triples, text/turtle, application/rdf+xml, application/n-quads
      * @returns 
      */
-    public load(rdfString: string, mimeType: RdfMimeType): void {
+    public load(rdfString: string, mimeType: RdfMimeType, fileUrl: Uri): void {
         const options = {
             format: mimeType,
-            to_graph_name: defaultGraph()
+            to_graph_name: defaultGraph(),
+            base_iri: fileUrl.toString()
         };
 
         this.#store.load(rdfString, options);

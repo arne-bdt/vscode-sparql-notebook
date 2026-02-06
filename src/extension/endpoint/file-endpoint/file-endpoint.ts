@@ -12,6 +12,8 @@ import { MimeType } from '../../const/enum/mime-type';
  * Represents an HTTP SPARQL endpoint.
  */
 export class FileEndpoint extends Endpoint {
+    override isQLeverEndpoint: boolean = false;
+
     #url: string = '';
     readonly #store: SparqlStore;
 
@@ -71,7 +73,7 @@ export class FileEndpoint extends Endpoint {
 
         try {
             const fileContent = await fs.promises.readFile(rdfFile.fsPath, 'utf-8');
-            this.#store.load(fileContent, mimeType);
+            this.#store.load(fileContent, mimeType, rdfFile);
         } catch (e: any) {
             const message = e.message ?? e;
             window.showErrorMessage(`File error: ${message}`);
