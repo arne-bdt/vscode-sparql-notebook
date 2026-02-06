@@ -5,11 +5,11 @@
   "publisher": "Zazuko",
   "license": "MIT",
   "icon": "images/zazuko.png",
-  "preview": true,
+  "preview": false,
   "repository": {
     "url": "https://github.com/zazuko/vscode-sparql-notebook.git"
   },
-  "version": "0.0.39",
+  "version": "1.0.12",
   "engines": {
     "vscode": "^1.90.0"
   },
@@ -40,7 +40,7 @@
     "notebookRenderer": [
       {
         "id": "sparql-notebook-json-result",
-        "entrypoint": "./out/renderer.js",
+        "entrypoint": "./out/renderer/sparql-result-json.js",
         "displayName": "SPARQL JSON Result",
         "mimeTypes": [
           "application/sparql-results+json"
@@ -136,6 +136,10 @@
       {
         "title": "SPARQL Notebook: Use File as Store",
         "command": "sparql-notebook.createStoreFromFile"
+      },
+      {
+        "command": "sparql-notebook.showEndpointEditor",
+        "title": "SPARQL Notebook: Show Endpoint Editor"
       }
     ],
     "viewsContainers": {
@@ -151,7 +155,7 @@
       "sparql-notebook": [
         {
           "id": "sparql-notebook-connections",
-          "name": "Sparql Connections",
+          "name": "Connections",
           "visibility": "visible",
           "icon": "assets/logo.svg",
           "contextualTitle": "Connections"
@@ -173,43 +177,46 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
-    "compile": "webpack --mode production",
+    "test": "tsc -p src/test/tsconfig.json && vscode-test",
+    "compile": "npm run clean && npm run copy:oxigraph &&npm run esbuild",
     "lint": "eslint src --ext ts",
-    "watch": "webpack --mode development --watch",
     "deploy": "npx vsce publish",
-    "package": "npx vsce package"
+    "package": "npx vsce package",
+    "build:extension": "esbuild ./src/extension/extension.ts --sourcemap --minify --bundle --platform=node --external:vscode --external:pg-native --outfile=./out/extension.js",
+    "build:renderer": "esbuild ./src/renderer/sparql-result-json.tsx --sourcemap --minify --jsx=automatic --tsconfig=./src/renderer/tsconfig.json --sourcemap --bundle --format=esm --platform=browser --outfile=./out/renderer/sparql-result-json.js",
+    "build:webview": "cd src/webview/endpoint/endpoint-view && npm run build && rm -rf ../../../../out/webview/ && mkdir -p ../../../../out/webview/ && mv dist/endpoint-view ../../../../out/webview/ ",
+    "copy:oxigraph": "cp node_modules/oxigraph/node_bg.wasm out/",
+    "esbuild": "npm run build:extension && npm run build:renderer && npm run build:webview",
+    "clean": "rm -rf out/ && mkdir out/"
   },
   "devDependencies": {
     "@types/glob": "^8.1.0",
     "@types/mocha": "^10.0.9",
     "@types/node": "18.x",
-    "@types/react": "^18.3.12",
+    "@types/react": "^18.3.22",
     "@types/react-dom": "^18.2.7",
     "@types/vscode": "^1.90.0",
     "@types/vscode-notebook-renderer": "^1.72.3",
     "@types/vscode-webview": "^1.57.5",
     "@types/webpack-env": "^1.18.5",
     "@typescript-eslint/eslint-plugin": "^8.12.2",
-    "@typescript-eslint/parser": "^ 8.12.2",
+    "@typescript-eslint/parser": "^8.12.2",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2",
     "css-loader": "^7.1.2",
+    "esbuild": "^0.25.9",
     "eslint": "^9.13.0",
-    "fork-ts-checker-webpack-plugin": "^9.0.2",
-    "glob": "^11.0.0",
     "os-browserify": "^0.3.0",
     "path-browserify": "^1.0.1",
     "style-loader": "^4.0.0",
     "ts-loader": "^9.5.1",
     "typescript": "^5.6.3",
     "url": "^0.11.4",
-    "util": "^0.12.5",
-    "webpack": "^5.95.0",
-    "webpack-cli": "^5.1.4"
+    "util": "^0.12.5"
   },
   "dependencies": {
-    "@vscode/webview-ui-toolkit": "^1.4.0",
     "@zazuko/prefixes": "^2.2.0",
-    "axios": "^1.7.7",
-    "oxigraph": "^0.4.2",
+    "oxigraph": "^0.5.0-beta.4 ",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

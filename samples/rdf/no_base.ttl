@@ -1,0 +1,5 @@
+<> a <http://example.org/Test> .
+
+<test> a <http://example.org/Test> .
+
+
