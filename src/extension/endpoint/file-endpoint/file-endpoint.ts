@@ -53,18 +53,9 @@ export class FileEndpoint extends Endpoint {
             window.showErrorMessage('No file selected');
             return;
         }
-        let mimeType: RdfMimeType | undefined = undefined;
-        if (rdfFile.fsPath.endsWith('.ttl')) {
-            mimeType = RdfMimeType.turtle;
-        } else if (rdfFile.fsPath.endsWith('.nt')) {
-            mimeType = RdfMimeType.nTriples;
-        } else if (rdfFile.fsPath.endsWith('.rdf')) {
-            mimeType = RdfMimeType.rdfXML;
-        } else if (rdfFile.fsPath.endsWith('.trig')) {
-            mimeType = RdfMimeType.trig;
-        } else if (rdfFile.fsPath.endsWith('.nq')) {
-            mimeType = RdfMimeType.nQuads;
-        }
+
+        const mimeType = this.getMimeType(rdfFile);
+
         if (!mimeType) {
             // show window error message
             window.showErrorMessage('File format not supported');
@@ -87,45 +78,59 @@ export class FileEndpoint extends Endpoint {
      * @param execution - The execution object.
      */
     public async query(sparqlQuery: SparqlQuery, execution?: any): Promise<SimpleHttpResponse> | never {
-        let response: SimpleHttpResponse | null = null;
-        switch (sparqlQuery.kind) {
-            case SPARQLQueryKind.ask:
-                response = {
-                    headers: { 'content-type': MimeType.sparqlResultsJson },
-                    data: this.#store.ask(sparqlQuery),
-                    status: 200,
-                    statusText: 'OK'
+        const handler = this.getQueryKindHandler(sparqlQuery.kind);
 
-                };
-                break;
-            case SPARQLQueryKind.select:
-                response = {
-                    headers: { 'content-type': MimeType.sparqlResultsJson },
-                    data: this.#store.select(sparqlQuery),
-                    status: 200,
-                    statusText: 'OK'
-                };
-                break;
-            case SPARQLQueryKind.describe:
-                response = {
-                    headers: { 'content-type': MimeType.turtle },
-                    data: this.#store.describe(sparqlQuery),
-                    status: 200,
-                    statusText: 'OK'
-                };
-                break;
-            case SPARQLQueryKind.construct:
-                response = {
-                    headers: { 'content-type': MimeType.turtle },
-                    data: this.#store.construct(sparqlQuery),
-                    status: 200,
-                    statusText: 'OK'
-                };
-                break;
-            default:
-                throw new Error(`Query type "${sparqlQuery.kind}" is not supported by FileEndpoint`);
+        if (!handler) {
+            throw new Error(`Query type "${sparqlQuery.kind}" is not supported by FileEndpoint`);
         }
 
-        return Promise.resolve(response);
+        return {
+            headers: { 'content-type': handler.contentType },
+            data: handler.execute(sparqlQuery),
+            status: 200,
+            statusText: 'OK'
+        };
+    }
+
+    private getMimeType(rdfFile: Uri): RdfMimeType | undefined {
+        if (rdfFile.fsPath.endsWith('.ttl')) {
+            return RdfMimeType.turtle;
+        } else if (rdfFile.fsPath.endsWith('.nt')) {
+            return RdfMimeType.nTriples;
+        } else if (rdfFile.fsPath.endsWith('.rdf')) {
+            return RdfMimeType.rdfXML;
+        } else if (rdfFile.fsPath.endsWith('.trig')) {
+            return RdfMimeType.trig;
+        } else if (rdfFile.fsPath.endsWith('.nq')) {
+            return RdfMimeType.nQuads;
+        }
+        return undefined;
+    }
+
+    private getQueryKindHandler(kind: SPARQLQueryKind): { contentType: string, execute: (query: SparqlQuery) => any } | undefined {
+        switch (kind) {
+            case SPARQLQueryKind.ask:
+                return {
+                    contentType: MimeType.sparqlResultsJson,
+                    execute: (q) => this.#store.ask(q)
+                };
+            case SPARQLQueryKind.select:
+                return {
+                    contentType: MimeType.sparqlResultsJson,
+                    execute: (q) => this.#store.select(q)
+                };
+            case SPARQLQueryKind.describe:
+                return {
+                    contentType: MimeType.turtle,
+                    execute: (q) => this.#store.describe(q)
+                };
+            case SPARQLQueryKind.construct:
+                return {
+                    contentType: MimeType.turtle,
+                    execute: (q) => this.#store.construct(q)
+                };
+            default:
+                return undefined;
+        }
     }
 }
