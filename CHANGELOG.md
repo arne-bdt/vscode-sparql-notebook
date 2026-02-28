@@ -2,6 +2,9 @@
 
 All notable changes to the "vscode-sparql-notebook" extension will be documented in this file.
 
+## 1.0.13
+- Fix: Add a default base to RDF parser to avoid issues with relative IRIs.
+
 ## 1.0.12
 - Fix: Improved compatibility for Wikidata queries on Windows by ensuring the user agent is set correctly when using VS Code's fetch API.
 
