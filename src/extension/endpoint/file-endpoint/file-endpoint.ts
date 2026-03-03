@@ -73,11 +73,6 @@ export class FileEndpoint extends Endpoint {
     }
 
     /**
-     * Returns whether this is a QLever endpoint.
-     */
-    readonly isQLeverEndpoint = false;
-
-    /**
      * Executes a SPARQL query against the endpoint.
      * @param sparqlQuery - The SPARQL query to execute.
      * @param execution - The execution object.
